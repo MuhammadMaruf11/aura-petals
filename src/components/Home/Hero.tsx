@@ -84,7 +84,7 @@ const Hero = () => {
                                         <h2 className="text-sm md:text-xl font-light tracking-[0.2em] mb-2 uppercase italic text-gray-200">
                                             {slide.subtitle}
                                         </h2>
-                                        <h1 className="font-heading text-5xl md:text-8xl mb-6 leading-tight">
+                                        <h1 className="font-heading text-5xl md:text-8xl mb-6 ">
                                             {slide.title.split(' ').map((word, i) => (
                                                 <span key={i} className={i === 1 ? "text-secondary" : ""}>
                                                     {word}{" "}
@@ -113,20 +113,6 @@ const Hero = () => {
                     </SwiperSlide>
                 ))}
             </Swiper>
-
-            {/* Custom Styles for Pagination */}
-            <style jsx global>{`
-        .swiper-pagination-bullet {
-          background: white !important;
-          opacity: 0.5;
-        }
-        .swiper-pagination-bullet-active {
-          background: #C5A059 !important; /* আপনার secondary কালার */
-          width: 24px;
-          border-radius: 4px;
-          opacity: 1;
-        }
-      `}</style>
         </section>
     );
 };

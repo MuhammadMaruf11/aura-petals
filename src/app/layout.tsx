@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Cormorant_Garamond, Montserrat } from "next/font/google";
 import "./globals.css";
+import "./custom.css";
 import FramerProvider from "@/components/providers/framer-provider";
 import Header from "@/components/common/Header";
 import ReactQueryProvider from "@/components/providers/react-query-provider";

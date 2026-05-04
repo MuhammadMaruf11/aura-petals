@@ -37,8 +37,8 @@ export const ProductCard = ({
             viewport={{ once: true }}
             transition={{ duration: 0.5 }}
         >
-            <Card className="group relative overflow-hidden border-none bg-transparent shadow-none">
-                <CardContent className="p-0 relative aspect-4/5 overflow-hidden  bg-muted">
+            <Card className="group relative overflow-hidden border-none bg-transparent shadow-none gap-0">
+                <CardContent className="p-0 relative aspect-4/5 overflow-hidden border-none bg-muted">
                     {/* Tier Badge */}
                     <Badge
                         className={cn(
@@ -61,22 +61,18 @@ export const ProductCard = ({
 
                     {/* Hover Overlay with ProductActions */}
                     <div className="absolute inset-0 bg-black/10 opacity-0 group-hover:opacity-100 transition-all duration-500 flex items-center justify-center backdrop-blur-[2px]">
-                        <motion.div
-                            initial={{ y: 20, opacity: 0 }}
-                            whileHover={{ y: 0, opacity: 1 }}
-                            transition={{ duration: 0.3 }}
-                        >
+                        <div>
                             <ProductActions
                                 onQuickView={() => onQuickView(product)}
                                 onWishlist={() => onWishlist(product)}
                                 onAddToCart={() => onAddToCart(product)}
                             />
-                        </motion.div>
+                        </div>
                     </div>
                 </CardContent>
 
                 {/* Product Info */}
-                <CardFooter className="flex flex-col items-center pt-5 pb-2 text-center">
+                <CardFooter className="flex flex-col items-center pt-5 pb-2 text-center border-none">
                     <p className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground font-bold mb-1">
                         {product.category}
                     </p>
