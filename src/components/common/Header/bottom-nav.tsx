@@ -1,72 +1,75 @@
 "use client";
 
-import React from "react";
 import Link from "next/link";
-import { Home, Heart, ShoppingCart, User } from "lucide-react";
+import { Heart, Home, ShoppingCart, User } from "lucide-react";
 import { useRouter } from "next/navigation";
 
+import { useCartStore } from "@/store/useCartStore";
+import { usePlatformStore } from "@/store/usePlatformStore";
+import { useWishlistStore } from "@/store/useWishlistStore";
+
 interface BottomNavProps {
-    onWishlistOpen: () => void;
-    onCartOpen: () => void;
+  onWishlistOpen: () => void;
+  onCartOpen: () => void;
 }
 
 export const BottomNav = ({ onWishlistOpen, onCartOpen }: BottomNavProps) => {
-    const router = useRouter();
-    const isLoggedIn = false; // Your Auth logic goes here
+  const router = useRouter();
+  const auth = usePlatformStore((state) => state.auth);
+  const cart = useCartStore((state) => state.cart);
+  const wishlist = useWishlistStore((state) => state.wishlist);
 
-    const handleAccountClick = () => {
-        if (isLoggedIn) {
-            router.push("/account");
-        } else {
-            router.push("/login");
-        }
-    };
+  const cartCount = cart.reduce((total, item) => total + item.quantity, 0);
 
-    return (
-        <div className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t z-100 h-16 shadow-[0_-2px_10px_rgba(0,0,0,0.05)]">
-            <div className="grid grid-cols-4 h-full">
-                {/* Home */}
-                <Link
-                    href="/"
-                    className="flex flex-col items-center justify-center gap-1 text-muted-foreground hover:text-primary transition-colors"
-                >
-                    <Home size={20} />
-                    <span className="text-[10px] font-bold uppercase tracking-widest">Home</span>
-                </Link>
+  return (
+    <div className="fixed bottom-0 left-0 right-0 z-50 h-16 border-t border-border bg-card shadow-[0_-2px_10px_rgba(0,0,0,0.05)] md:hidden">
+      <div className="grid h-full grid-cols-4">
+        <Link
+          href="/"
+          className="flex flex-col items-center justify-center gap-1 text-muted-foreground transition-colors hover:text-primary"
+        >
+          <Home size={20} />
+          <span className="text-[10px] font-bold uppercase tracking-widest">Home</span>
+        </Link>
 
-                {/* Wishlist - Opens Modal */}
-                <button
-                    onClick={onWishlistOpen}
-                    className="flex flex-col items-center justify-center gap-1 text-muted-foreground hover:text-secondary transition-colors"
-                >
-                    <div className="relative">
-                        <Heart size={20} />
-                        <span className="absolute -top-1 -right-1 bg-secondary text-white text-[8px] w-3.5 h-3.5 rounded-full flex items-center justify-center">0</span>
-                    </div>
-                    <span className="text-[10px] font-bold uppercase tracking-widest">Wishlist</span>
-                </button>
+        <button
+          onClick={onWishlistOpen}
+          className="flex flex-col items-center justify-center gap-1 text-muted-foreground transition-colors hover:text-secondary"
+        >
+          <div className="relative">
+            <Heart size={20} />
+            {wishlist.length ? (
+              <span className="absolute -right-1 -top-1 flex size-3.5 items-center justify-center rounded-full bg-secondary text-[8px] text-white">
+                {wishlist.length}
+              </span>
+            ) : null}
+          </div>
+          <span className="text-[10px] font-bold uppercase tracking-widest">Wishlist</span>
+        </button>
 
-                {/* Cart - Opens Drawer */}
-                <button
-                    onClick={onCartOpen}
-                    className="flex flex-col items-center justify-center gap-1 text-muted-foreground hover:text-primary transition-colors"
-                >
-                    <div className="relative">
-                        <ShoppingCart size={20} />
-                        <span className="absolute -top-1 -right-1 bg-primary text-white text-[8px] w-3.5 h-3.5 rounded-full flex items-center justify-center font-bold">0</span>
-                    </div>
-                    <span className="text-[10px] font-bold uppercase tracking-widest">Cart</span>
-                </button>
+        <button
+          onClick={onCartOpen}
+          className="flex flex-col items-center justify-center gap-1 text-muted-foreground transition-colors hover:text-primary"
+        >
+          <div className="relative">
+            <ShoppingCart size={20} />
+            {cartCount ? (
+              <span className="absolute -right-1 -top-1 flex size-3.5 items-center justify-center rounded-full bg-primary text-[8px] font-bold text-white">
+                {cartCount}
+              </span>
+            ) : null}
+          </div>
+          <span className="text-[10px] font-bold uppercase tracking-widest">Cart</span>
+        </button>
 
-                {/* Account */}
-                <button
-                    onClick={handleAccountClick}
-                    className="flex flex-col items-center justify-center gap-1 text-muted-foreground hover:text-primary transition-colors"
-                >
-                    <User size={20} />
-                    <span className="text-[10px] font-bold uppercase tracking-widest">Account</span>
-                </button>
-            </div>
-        </div>
-    );
+        <button
+          onClick={() => router.push(auth.isAuthenticated ? "/profile" : "/login")}
+          className="flex flex-col items-center justify-center gap-1 text-muted-foreground transition-colors hover:text-primary"
+        >
+          <User size={20} />
+          <span className="text-[10px] font-bold uppercase tracking-widest">Account</span>
+        </button>
+      </div>
+    </div>
+  );
 };

@@ -7,10 +7,32 @@
   --font-heading: "Cormorant Garamond", serif;
   --font-body: "Montserrat", sans-serif;
 
-  --color-primary: #829265;
-  --color-secondary: #DCAE96;
-  --color-background: #FDFCFB;
-  --color-foreground: #2C3E50;
+  --color-primary: var(--brand-primary);
+  --color-primary-foreground: #fffdf8;
+  --color-secondary: var(--brand-secondary);
+  --color-secondary-foreground: #2f3129;
+  --color-accent: var(--brand-accent);
+  --color-background: var(--surface-background);
+  --color-foreground: var(--surface-foreground);
+  --color-card: #fffdf9;
+  --color-card-foreground: var(--surface-foreground);
+  --color-muted: #f3ede5;
+  --color-muted-foreground: #6e6d66;
+  --color-border: #ddd5ca;
+  --color-input: #efe7dc;
+  --color-ring: color-mix(in srgb, var(--brand-primary) 45%, white);
+}
+
+:root {
+  --brand-primary: #8a9a5b;
+  --brand-secondary: #dcae96;
+  --brand-accent: #d4af37;
+  --surface-background: #faf9f6;
+  --surface-foreground: #2f3129;
+}
+
+* {
+  border-color: var(--color-border);
 }
 
 body {
@@ -26,4 +48,8 @@ h4,
 h5,
 h6 {
   font-family: var(--font-heading);
+}
+
+a {
+  color: inherit;
 }
