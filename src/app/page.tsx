@@ -98,7 +98,11 @@ export default function Home() {
     <>
       <Hero />
       <CategorySection />
-      <ProductGrid products={DUMMY_PRODUCTS} />
+      <ProductGrid
+        title="Exclusive Collection"
+        subtitle="Shop Our Latest Drops"
+        products={DUMMY_PRODUCTS}
+      />
     </>
   );
 }

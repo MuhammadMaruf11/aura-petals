@@ -9,6 +9,7 @@ import { CustomButton } from "@/components/ui/custom-button";
 import { useCartStore } from "@/store/useCartStore";
 import { useWishlistStore } from "@/store/useWishlistStore";
 import { ArrowRight } from "lucide-react";
+import { EmptyState } from "@/components/common/EmptyState";
 
 interface GridProps {
     title?: string;
@@ -52,28 +53,36 @@ const ProductGrid = ({ title, subtitle, products, limit = 6, categoryFilter }: G
                 )}
 
                 {/* Product Grid - এখন ৬টি কলামে (lg:grid-cols-6) */}
-                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4 md:gap-6">
-                    {displayProducts.map((item) => (
-                        <ProductCard
-                            key={item.id}
-                            product={item}
-                            onQuickView={(p) => setSelectedProduct(p)}
-                            onWishlist={(p) => toggleWishlist(p)}
-                            onAddToCart={(p) => addToCart({ ...p, quantity: 1 })}
-                        />
-                    ))}
-                </div>
-
-                {/* See All Products Button */}
-                {hasMore && (
-                    <div className="mt-12 flex justify-center">
-                        <Link href="/shop">
-                            <CustomButton variant="primary" className="px-10 h-12 group">
-                                See All Products
-                                <ArrowRight className="ml-2 w-4 h-4 group-hover:translate-x-1 transition-transform" />
-                            </CustomButton>
-                        </Link>
+                {displayProducts.length === 0 ? (
+                    <EmptyState
+                        title="Product Coming Soon"
+                        description="Our curators are working hard to bring you the best items in this category."
+                    />
+                ) : (
+                    <>     <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4 md:gap-6">
+                        {displayProducts.map((item) => (
+                            <ProductCard
+                                key={item.id}
+                                product={item}
+                                onQuickView={(p) => setSelectedProduct(p)}
+                                onWishlist={(p) => toggleWishlist(p)}
+                                onAddToCart={(p) => addToCart({ ...p, quantity: 1 })}
+                            />
+                        ))}
                     </div>
+
+                        {/* See All Products Button */}
+                        {hasMore && (
+                            <div className="mt-12 flex justify-center">
+                                <Link href="/shop">
+                                    <CustomButton variant="primary" className="px-10 h-12 group">
+                                        See All Products
+                                        <ArrowRight className="ml-2 w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                                    </CustomButton>
+                                </Link>
+                            </div>
+                        )}
+                    </>
                 )}
             </div>
 
