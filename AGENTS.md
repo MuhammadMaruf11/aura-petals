@@ -1,54 +1,76 @@
-# Aura & Petals - Project Agent Instruction & Rules
 
-You are an expert AI software engineer and architect specialized in Next.js (App Router), Supabase, and system automation. Follow these guidelines strictly when developing or modifying any files for the "Aura & Petals" multi-tenant e-commerce and SaaS platform.
+## ⚠️ CRITICAL: Tailwind CSS v4 & Next.js Modern Syntax Rules
+- Do NOT use `@tailwind base; @tailwind components;` syntax (V3).
+- ALWAYS use Tailwind v4 CSS-first configuration syntax: `@import "tailwindcss";` in the global CSS file.
+- Do NOT use arbitrary values like `bg-[#8A9A5B]` everywhere. You must map theme colors to dynamic CSS variables in the theme layer: `:root { --primary: #8A9A5B; }` and use `bg-(--primary)`.
+- Use Next.js async component parameters for Dynamic Routes. `params` and `searchParams` are Promises now:
+  ```typescript
+  // Right Way:
+  export default async function Page({ params }: { params: Promise<{ slug: string }> }) {
+    const { slug } = await params;
+  }
+# This is NOT the Next.js you know
+This version has breaking changes — APIs, conventions, and file structure may all differ from your training data. Read the relevant guide in `node_modules/next/dist/docs/` before writing any code. Heed deprecation notices.
+# Aura & Petals - Multi-Tenant SaaS Master System Instructions
 
-## 1. Project Overview
-Aura & Petals is a production-level E-commerce and SaaS platform for SMEs and startups. It provides a highly customizable store front, automated social media content distribution, and administrative controls.
-
-## 2. Technology Stack & Infrastructure
-- **Framework:** Next.js (App Router)
-- **Styling:** Tailwind CSS (Palette: Sage Green `#8A9A5B`, Dusty Rose `#DCAE96`, Champagne Gold `#D4AF37`, Soft Off-White `#FAF9F6`)
-- **Animations:** Framer Motion
-- **Database & Auth:** Supabase (Database, Auth, and Storage)
-- **Media Uploads:** Cloudinary (handles product images and video URLs)
-- **Automation Engine:** Make.com Webhooks (triggered via Supabase database changes)
-
----
-
-## 3. Core Modules & Architecture
-
-### A. Frontend / Storefront (End-User Interface)
-- **Home Page:** Hero section, featured collections, category navigation.
-- **Shop / Products Page:** Grid layout, multi-parameter filtering, sorting, and search bar.
-- **Product Detail Page:** Multi-image display, pricing, specs, and Add-to-Cart options.
-- **Auth & Profile:** User registration, login, profile settings, and order history tracking.
-- **Contact Page:** User contact form that links directly to the SME Admin Panel.
-
-### B. Admin Panel (SMEs / Tenants)
-- **Branding & Layout Control:** Upload logo and dynamically update primary/secondary colors using Tailwind variables.
-- **Product CRUD:** Create, Read, Update, and Delete products with multi-image/video support. 
-- **Message Board:** View and respond to customer queries from the contact page.
-- **Image Lifecycle:** Delete/Update images automatically from Cloudinary when a product is modified or removed.
-
-### C. Super-Admin Dashboard (SaaS Owner)
-- **Subscription Management:** Activate, adjust, or deactivate client tenant instances.
-- **Pricing Tiers:** Adjust limits and plan tiers for different business scales.
-- **Payment Processing:** Manual recording and verification of bKash and Nagad transactions.
+You are an expert full-stack AI engineer specializing in ultra-scalable Next.js (App Router) architectures, Supabase backend ecosystems, and dynamic caching layer optimizations. Follow these instructions flawlessly.
 
 ---
 
-## 4. Automation & Media Rules (Make.com)
+## 1. Core Architecture & Tech Stack
 
-- **Rule 1 (Images):** - Send to: Facebook, Instagram, LinkedIn, and the website.
-  - Exclusions: Do *not* send images to YouTube and TikTok.
-  - Multi-image support: Can be added or updated via the Admin panel.
+### Frontend & Rendering
+- **Framework:** Next.js (App Router). Strictly separate Server Components (default) and Client Components (`'use client'`).
+- **Styling:** TailwindCSS + `clsx` for dynamic theme injection.
+- **UI Libraries:** Shadcn-style primitives. Do NOT use heavy component UI libraries (No Ant Design, No Material UI).
+- **State & Fetching:** React Query (TanStack Query) for async server state. Zustand ONLY for volatile client UI states.
 
-- **Rule 2 (Video Content - Reels/Shorts only):** - Send to: Facebook, Instagram, YouTube, TikTok, and LinkedIn.
-  - Constraints: Video files must *not* be rendered on the website interface.
+### Backend, Database & Cache
+- **BaaS Platform:** Supabase (Auth, PostgreSQL Database, and Native Realtime).
+- **ORM:** Prisma ORM (Connecting via Supabase connection pooling string).
+- **High-Performance Cache:** Redis (via Upstash Redis SDK) to cache active Tenant Branding & Metadata.
+
+### External & Automation
+- **Media Engine:** Cloudinary (Direct secure frontend uploads; lifecycle API route deletions).
+- **Automation Pipeline:** Supabase database triggers pulsing outbound webhooks to Make.com.
 
 ---
 
-## 5. Coding Guidelines
-- **App Router Conventions:** Keep client/server components clearly separated; use `use client` strictly where interactivity or state is required.
-- **Data Fetching:** Use React Query (TanStack Query) or standard `fetch` with Next.js caching techniques for optimized performance.
-- **Responsive Design:** Mobile-first layout using Tailwind classes, especially to ensure that S24 Ultra imagery is fully optimized via Next/Image components.
+## 2. Multi-Tenancy & Dynamic Routing Rules
+
+Every piece of data, user, configuration, or order belongs to a specific business user called a **Tenant**. 
+
+
+
+### Hostname Interception (`middleware.ts`)
+1. Multi-tenancy must operate on a single deployed codebase handling dynamic subdomains and mapped custom domains.
+2. The middleware must capture `request.nextUrl.hostname`.
+3. Check **Redis Cache** first for the hostname mapping. If empty, fall back to Supabase `tenants` table.
+4. Rewrite the destination internally to `/store/[tenant_slug]`. The end-user must see their clean domain (e.g., `saffronglow.com` or `shop1.aurapetals.com`) in the address bar.
+
+### Database Isolation (Row Level Security)
+1. Every shared table (`products`, `orders`, `categories`, `messages`) MUST contain a `tenant_id: UUID` column.
+2. Enable strict PostgreSQL RLS policies so no tenant can ever read, update, or cross-contaminate another tenant's rows.
+
+---
+
+## 3. Automation & Media Distribution Rules (Make.com)
+
+- **Trigger:** Any `INSERT` or `UPDATE` operation on the `products` database table.
+- **Rule A (Image Assests):** Uploaded via Cloudinary (Supports multiple high-res URLs). Distribute to Facebook, Instagram, LinkedIn, and render directly on the public storefront. **Exclusion:** Never sync static images to YouTube or TikTok.
+- **Rule B (Short-Form Video):** Uploaded via Cloudinary (Strictly vertical Reels/Shorts format). Distribute to Facebook, Instagram, YouTube Shorts, TikTok, and LinkedIn. **Constraint:** Videos must NEVER be rendered or loaded anywhere on the consumer-facing web storefront to optimize page speeds.
+
+---
+
+## 4. Performance & Caching Guardrails
+
+1. **The Redis Law:** General public storefront operations (fetching logo, theme colors, product categories) must hit the Upstash Redis cache first. Only fetch from Supabase if cache misses, then re-populate cache with a 24-hour TTL.
+2. **Bandwidth Optimization:** Never pipeline raw unoptimized Cloudinary URLs directly to the user. Append Cloudinary dynamic transformation flags (`w_auto,q_auto,f_auto`) inside the Next.js `Image` wrapper.
+3. **Pagination & Streaming:** Every product catalog view, admin table, and data grid must use server-side paginated queries. Avoid overfetching at all costs.
+
+---
+
+## 5. Security Standards
+
+1. **Zero-Trust Frontend:** Never trust role-permissions or input payloads sent from the client side. Always re-verify JWT sub-claims and validate input shapes via Server-Side Zod schemas.
+2. **Automated Cloud Cleanup:** When a product or tenant drops/deletes an image asset inside the Admin dashboard, trigger a background serverless execution to delete that file from Cloudinary immediately. No dead weight storage.

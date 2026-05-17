@@ -11,7 +11,6 @@ import { Input } from "@/components/ui/input";
 import { useCartStore } from "@/store/useCartStore";
 import { useWishlistStore } from "@/store/useWishlistStore";
 
-
 // Components
 import { CartDrawer } from "../Drawers/CartDrawer";
 import { WishlistModal } from "../Modals/WishlistModal";
@@ -45,9 +44,8 @@ const Header = () => {
     const navLinks = [
         { name: "Home", href: "/" },
         { name: "Shop All", href: "/shop" },
-        { name: "Elite Items", href: "/shop?tier=elite" },
-        { name: "Budget Friendly", href: "/shop?tier=average" },
-        { name: "Custom Crafts", href: "/shop?category=crafts" },
+        { name: "About Us", href: "/about-us" }, 
+        { name: "Contact Us", href: "/contact-us" }, 
     ];
 
     if (!mounted) return null;

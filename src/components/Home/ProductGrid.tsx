@@ -15,7 +15,7 @@ interface GridProps {
     title?: string;
     subtitle?: string;
     products: any[];
-    limit?: number; // ডিফল্ট বা ইউজার ডিফাইন করা লিমিট (যেমন: ৬)
+    limit?: number; // Default or user-defined limit (e.g., 6)
     categoryFilter?: string;
 }
 
@@ -25,15 +25,15 @@ const ProductGrid = ({ title, subtitle, products, limit = 6, categoryFilter }: G
     const { addToCart } = useCartStore();
     const { toggleWishlist } = useWishlistStore();
 
-    // ১. প্রথমে ক্যাটাগরি অনুযায়ী ফিল্টার করা
+    // Filter products by category if a filter is provided
     const filteredProducts = categoryFilter
         ? products.filter(p => p.category.toLowerCase() === categoryFilter.toLowerCase())
         : products;
 
-    // ২. বাটন দেখানোর জন্য অরিজিনাল কাউন্ট রাখা
+    // Determine if there are more items to show beyond the limit
     const hasMore = filteredProducts.length > limit;
 
-    // ৩. লিমিট অনুযায়ী প্রোডাক্ট স্লাইস করা
+    // Slice the products to only include those within the limit
     const displayProducts = filteredProducts.slice(0, limit);
 
     return (
@@ -48,28 +48,29 @@ const ProductGrid = ({ title, subtitle, products, limit = 6, categoryFilter }: G
                             </span>
                         )}
                         {title && <h2 className="font-heading text-3xl md:text-4xl text-primary">{title}</h2>}
-                        <div className="w-12 h-[2px] bg-secondary mt-3" />
+                        <div className="w-12 h-0.5 bg-secondary mt-3" />
                     </div>
                 )}
 
-                {/* Product Grid - এখন ৬টি কলামে (lg:grid-cols-6) */}
+                {/* Product Grid - Responsive grid layout */}
                 {displayProducts.length === 0 ? (
                     <EmptyState
                         title="Product Coming Soon"
                         description="Our curators are working hard to bring you the best items in this category."
                     />
                 ) : (
-                    <>     <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4 md:gap-6">
-                        {displayProducts.map((item) => (
-                            <ProductCard
-                                key={item.id}
-                                product={item}
-                                onQuickView={(p) => setSelectedProduct(p)}
-                                onWishlist={(p) => toggleWishlist(p)}
-                                onAddToCart={(p) => addToCart({ ...p, quantity: 1 })}
-                            />
-                        ))}
-                    </div>
+                    <>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4 md:gap-6">
+                            {displayProducts.map((item) => (
+                                <ProductCard
+                                    key={item.id}
+                                    product={item}
+                                    onQuickView={(p) => setSelectedProduct(p)}
+                                    onWishlist={(p) => toggleWishlist(p)}
+                                    onAddToCart={(p) => addToCart({ ...p, quantity: 1 })}
+                                />
+                            ))}
+                        </div>
 
                         {/* See All Products Button */}
                         {hasMore && (

@@ -1,12 +1,21 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  /* config options here */
   reactCompiler: true,
 
   images: {
+    loader: "custom",
+    loaderFile: "./src/lib/cloudinary-loader.ts",
+
     remotePatterns: [
-      { protocol: "https", hostname: "*" },
+      {
+        protocol: "https",
+        hostname: "res.cloudinary.com",
+      },
+      {
+        protocol: "https",
+        hostname: "*",
+      },
     ],
   },
 };
