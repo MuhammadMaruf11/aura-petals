@@ -3,27 +3,149 @@
 
 @custom-variant dark (&:is(.dark *));
 
-@theme {
-  --font-heading: "Cormorant Garamond", serif;
-  --font-body: "Montserrat", sans-serif;
+/* ---------------------------------------------------------------------- */
+/* Brand tokens — warm, minimal, boutique handmade-gift palette           */
+/* ---------------------------------------------------------------------- */
+:root {
+  --radius: 0.75rem;
 
-  --color-primary: #829265;
-  --color-secondary: #DCAE96;
-  --color-background: #FDFCFB;
-  --color-foreground: #2C3E50;
+  /* Core palette */
+  --color-cream: #fdfcfb;
+  --color-sand: #f6f1ea;
+  --color-clay: #c88a68;
+  --color-terracotta: #b96a49;
+  --color-sage: #829265;
+  --color-sage-dark: #5f6d49;
+  --color-blush: #dcae96;
+  --color-ink: #2c3e50;
+  --color-ink-muted: #5c6b78;
+
+  --background: var(--color-cream);
+  --foreground: var(--color-ink);
+
+  --card: #ffffff;
+  --card-foreground: var(--color-ink);
+
+  --popover: #ffffff;
+  --popover-foreground: var(--color-ink);
+
+  --primary: var(--color-sage);
+  --primary-foreground: #ffffff;
+
+  --secondary: var(--color-sand);
+  --secondary-foreground: var(--color-ink);
+
+  --accent: var(--color-blush);
+  --accent-foreground: var(--color-ink);
+
+  --muted: var(--color-sand);
+  --muted-foreground: var(--color-ink-muted);
+
+  --destructive: #b3423a;
+  --destructive-foreground: #ffffff;
+
+  --success: #4c7a52;
+  --success-foreground: #ffffff;
+
+  --border: #e7ddd0;
+  --input: #e7ddd0;
+  --ring: var(--color-sage);
+
+  --chart-1: var(--color-sage);
+  --chart-2: var(--color-clay);
+  --chart-3: var(--color-blush);
+  --chart-4: var(--color-ink-muted);
+  --chart-5: var(--color-terracotta);
 }
 
-body {
-  background-color: var(--color-background);
-  color: var(--color-foreground);
-  font-family: var(--font-body);
+.dark {
+  --background: #201c18;
+  --foreground: #f3ede4;
+  --card: #2a2521;
+  --card-foreground: #f3ede4;
+  --popover: #2a2521;
+  --popover-foreground: #f3ede4;
+  --primary: var(--color-sage);
+  --primary-foreground: #ffffff;
+  --secondary: #34302a;
+  --secondary-foreground: #f3ede4;
+  --accent: var(--color-blush);
+  --accent-foreground: #201c18;
+  --muted: #34302a;
+  --muted-foreground: #b8ab9b;
+  --destructive: #c9584d;
+  --destructive-foreground: #ffffff;
+  --success: #6a9a6f;
+  --success-foreground: #10160f;
+  --border: #3c362f;
+  --input: #3c362f;
+  --ring: var(--color-sage);
 }
 
-h1,
-h2,
-h3,
-h4,
-h5,
-h6 {
-  font-family: var(--font-heading);
+@theme inline {
+  --font-heading: var(--font-cormorant), "Cormorant Garamond", serif;
+  --font-body: var(--font-manrope), "Manrope", sans-serif;
+
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-success: var(--success);
+  --color-success-foreground: var(--success-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+
+  --color-clay: var(--color-clay);
+  --color-terracotta: var(--color-terracotta);
+  --color-sage: var(--color-sage);
+  --color-sage-dark: var(--color-sage-dark);
+  --color-blush: var(--color-blush);
+  --color-sand: var(--color-sand);
+
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground;
+    font-family: var(--font-body);
+  }
+  h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-heading);
+    letter-spacing: -0.01em;
+  }
+}
+
+@layer utilities {
+  .container-boutique {
+    @apply mx-auto w-full max-w-[1400px] px-4 sm:px-6 lg:px-10;
+  }
+  .text-balance {
+    text-wrap: balance;
+  }
 }
