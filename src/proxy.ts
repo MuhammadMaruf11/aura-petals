@@ -1,7 +1,5 @@
 import { NextResponse, type NextRequest } from "next/server";
-import { verifySessionToken } from "@/lib/auth/session";
-
-const SESSION_COOKIE_NAME = "session";
+import { verifySessionToken, sessionCookieConfig, adminSessionCookieConfig } from "@/lib/auth/session";
 
 export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
@@ -18,7 +16,11 @@ export async function proxy(request: NextRequest) {
     return NextResponse.next();
   }
 
-  const token = request.cookies.get(SESSION_COOKIE_NAME)?.value;
+  // Admin and account routes are gated by two entirely separate cookies —
+  // an admin session must never grant access to /account, and a customer
+  // session must never grant access to /admin.
+  const cookieName = isAdminRoute ? adminSessionCookieConfig.name : sessionCookieConfig.name;
+  const token = request.cookies.get(cookieName)?.value;
   const session = token ? await verifySessionToken(token) : null;
 
   if (!session) {

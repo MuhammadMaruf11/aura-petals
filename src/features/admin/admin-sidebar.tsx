@@ -17,7 +17,7 @@ import {
   Menu,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { logoutUser } from "@/server/actions/auth.actions";
+import { logoutAdmin } from "@/server/actions/auth.actions";
 import { Button } from "@/components/ui/button";
 import {
   Sheet,
@@ -77,7 +77,7 @@ function AdminSignOutButton() {
     <button
       type="button"
       onClick={async () => {
-        await logoutUser();
+        await logoutAdmin();
         router.push("/admin/login");
         router.refresh();
       }}

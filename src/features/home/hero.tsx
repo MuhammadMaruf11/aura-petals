@@ -61,11 +61,11 @@ export function Hero({ banners }: { banners?: Banner[] }) {
     <section className="relative w-full overflow-hidden bg-white my-8">
       {/* Embla Viewport */}
       <div className="overflow-hidden container mx-auto" ref={emblaRef}>
-        <div className="flex touch-pan-y">
+        <div className="flex touch-pan-y items-start">
           {slides.map((slide, index) => (
             <div
               key={slide.id || index}
-              className="relative flex-[0_0_100%] min-w-0 h-130 sm:h-155 lg:h-175 select-none"
+              className="relative flex-[0_0_100%] min-w-0 min-h-130 sm:min-h-155 lg:min-h-175 select-none"
             >
               {/* Background Hero Image */}
               <Image

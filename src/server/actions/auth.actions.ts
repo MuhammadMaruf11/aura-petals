@@ -3,7 +3,7 @@
 import { cookies } from "next/headers";
 import { prisma } from "@/lib/db/prisma";
 import { hashPassword, verifyPassword } from "@/lib/auth/password";
-import { createSessionToken, sessionCookieConfig } from "@/lib/auth/session";
+import { createSessionToken, sessionCookieConfig, adminSessionCookieConfig } from "@/lib/auth/session";
 import { mergeGuestCartIntoUserCart } from "@/server/services/cart.service";
 import { peekGuestToken, clearGuestToken } from "@/lib/cart/guest-token";
 import {
@@ -19,7 +19,7 @@ export type AuthActionState = {
   fieldErrors?: Record<string, string[]>;
 };
 
-async function establishSession(user: {
+async function establishCustomerSession(user: {
   id: string;
   role: "ADMIN" | "CUSTOMER";
   email: string;
@@ -35,12 +35,28 @@ async function establishSession(user: {
   cookieStore.set(sessionCookieConfig.name, token, sessionCookieConfig.options);
 }
 
+async function establishAdminSession(user: {
+  id: string;
+  role: "ADMIN" | "CUSTOMER";
+  email: string;
+  name: string;
+}) {
+  const token = await createSessionToken({
+    sub: user.id,
+    role: user.role,
+    email: user.email,
+    name: user.name,
+  });
+  const cookieStore = await cookies();
+  cookieStore.set(adminSessionCookieConfig.name, token, adminSessionCookieConfig.options);
+}
+
 /**
  * Folds any items from the visitor's pre-login guest cart into their
  * now-authenticated cart, then drops the now-empty guest cookie.
  * `mergeGuestCartIntoUserCart` was previously written but never called
  * from anywhere — guest cart items were silently lost on every
- * login/registration. Called after establishSession() so this always
+ * login/registration. Called after establishCustomerSession() so this always
  * runs for both new registrations and existing logins.
  */
 async function mergeGuestCartIfPresent(userId: string) {
@@ -87,7 +103,7 @@ export async function registerUser(
     prisma.wishlist.create({ data: { userId: user.id } }),
   ]);
 
-  await establishSession(user);
+  await establishCustomerSession(user);
   await mergeGuestCartIfPresent(user.id);
 
   return { success: true };
@@ -101,7 +117,11 @@ export async function loginUser(input: LoginInput): Promise<AuthActionState> {
   const { email, password } = parsed.data;
 
   const user = await prisma.user.findUnique({ where: { email } });
-  if (!user || !user.isActive) {
+  // Generic "Invalid email or password" for every failure case, including
+  // "this account exists but isn't a customer account" — the customer
+  // login form must never become a way to authenticate an admin account,
+  // and must not reveal account existence/role either.
+  if (!user || !user.isActive || user.role !== "CUSTOMER") {
     return { success: false, message: "Invalid email or password" };
   }
 
@@ -110,8 +130,37 @@ export async function loginUser(input: LoginInput): Promise<AuthActionState> {
     return { success: false, message: "Invalid email or password" };
   }
 
-  await establishSession(user);
+  await establishCustomerSession(user);
   await mergeGuestCartIfPresent(user.id);
+
+  return { success: true };
+}
+
+export async function loginAdmin(input: LoginInput): Promise<AuthActionState> {
+  const parsed = loginSchema.safeParse(input);
+  if (!parsed.success) {
+    return { success: false, fieldErrors: parsed.error.flatten().fieldErrors };
+  }
+  const { email, password } = parsed.data;
+
+  const user = await prisma.user.findUnique({ where: { email } });
+  // Same generic message for every failure case, including "this account
+  // exists but isn't an admin account" — the admin login form must never
+  // become a way to authenticate a customer account into the admin
+  // session, and must not reveal account existence/role either.
+  if (!user || !user.isActive || user.role !== "ADMIN") {
+    return { success: false, message: "Invalid email or password" };
+  }
+
+  const isValid = await verifyPassword(password, user.passwordHash);
+  if (!isValid) {
+    return { success: false, message: "Invalid email or password" };
+  }
+
+  await establishAdminSession(user);
+  // Deliberately no mergeGuestCartIfPresent() here — admins don't have
+  // shopping carts, and an admin login must not touch the customer-side
+  // guest cart cookie at all.
 
   return { success: true };
 }
@@ -119,4 +168,9 @@ export async function loginUser(input: LoginInput): Promise<AuthActionState> {
 export async function logoutUser() {
   const cookieStore = await cookies();
   cookieStore.delete(sessionCookieConfig.name);
+}
+
+export async function logoutAdmin() {
+  const cookieStore = await cookies();
+  cookieStore.delete({ name: adminSessionCookieConfig.name, path: "/admin" });
 }

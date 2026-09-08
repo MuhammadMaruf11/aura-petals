@@ -5,7 +5,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter, useSearchParams } from "next/navigation";
 import { loginSchema, type LoginInput } from "@/lib/validations/auth";
-import { loginUser } from "@/server/actions/auth.actions";
+import { loginAdmin } from "@/server/actions/auth.actions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -31,7 +31,7 @@ function AdminLoginForm() {
   function onSubmit(values: LoginInput) {
     setFormError(null);
     startTransition(async () => {
-      const result = await loginUser(values);
+      const result = await loginAdmin(values);
       if (!result.success) {
         setFormError(result.message ?? "Invalid email or password.");
         return;

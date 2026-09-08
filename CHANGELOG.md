@@ -1,5 +1,60 @@
 # Changelog
 
+## Admin/customer auth isolation fix + banner responsive fix
+
+**Root cause of admin identity leaking into customer account pages**: the
+entire app used a single shared `"session"` cookie for both admin and
+customer logins, and `loginUser()`/`getCurrentUser()`/`requireUser()` never
+filtered by role — the admin login page even called the same `loginUser()`
+action as the customer login form. Any authenticated session (admin or
+customer) was treated as "the current user" everywhere, including on
+customer account pages.
+
+**Fix**: fully separated the two auth realms rather than patching around
+the symptom:
+- New `admin_session` cookie (`src/lib/auth/session.ts`), scoped to
+  `path: "/admin"` so the browser never even sends it on customer
+  requests — separate from the existing customer `session` cookie.
+- `src/lib/auth/current-user.ts` split into two independent resolution
+  paths: `getSession`/`getCurrentUser`/`requireUser` (customer only, now
+  also defense-in-depth checks `role === "CUSTOMER"`) and the new
+  `getAdminSession`/`getCurrentAdmin`/`requireAdmin` (admin only, reads
+  only the admin cookie).
+- New `loginAdmin`/`logoutAdmin` actions (`auth.actions.ts`) — the admin
+  login page now calls `loginAdmin`, which rejects any non-ADMIN account
+  and writes only the admin cookie. `loginUser` (customer) now likewise
+  rejects any non-CUSTOMER account. Both return the same generic "Invalid
+  email or password" on every failure case, so neither login form can be
+  used as an oracle for account existence/role.
+- `src/proxy.ts` (route middleware) now checks the admin cookie for
+  `/admin/*` and the customer cookie for `/account/*`, instead of one
+  cookie for both.
+- Admin login/logout no longer touches the customer guest-cart-merge
+  logic (admins don't have carts).
+
+No schema changes. Existing customer login/register/logout flows and
+existing `requireAdmin()` call sites throughout the admin panel are
+unchanged in signature — only how they resolve the session underneath.
+
+**Banner responsiveness**: the Hero was redesigned (by the user, outside
+this pass) into an Embla carousel — left the visual design untouched.
+Fixed one confirmed content-clipping risk: slides used a fixed `h-130
+sm:h-155 lg:h-175`, which would visually clip a longer admin-entered
+title/subtitle that wraps onto more lines than that fixed height allows
+for (worse on narrow/mobile widths, where less horizontal space means more
+wrapped lines) — the parent `<section>` has `overflow-hidden`. Changed to
+`min-h-*` (same rendered height for the current content, just a floor
+instead of a hard cap) and added `items-start` to the Embla flex track to
+prevent flex's default stretch-to-tallest-sibling behavior from now
+affecting shorter slides. Investigated the outer viewport's use of
+Tailwind's bare `container` utility (no padding, narrower max-width than
+the site's `container-boutique`) as a possible mobile-edge-flush issue,
+but reverted that change after finding it would double the text overlay's
+padding (which already applies its own `container-boutique` independently)
+and remove the apparently-intentional edge-to-edge image bleed within the
+boxed section — that's a design judgment call, not a confirmed bug, so left
+as the user's own updated design has it.
+
 ## Completion pass: banners (PROMO_STRIP/MID_PAGE), GA4/Pixel, product Edit/Delete, return status polish
 
 - **Product list Edit/Delete**: `deleteProductAction` (with its existing
