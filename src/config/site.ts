@@ -4,7 +4,7 @@ export const siteConfig = {
   description:
     "Handmade clay art, personalized gifts, and premium gift boxes crafted with care — for birthdays, anniversaries, and the moments in between.",
   url: process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000",
-  logoUrl: "/images/logo.jpg",
+  logoUrl: "/images/logo.png",
   currency: process.env.NEXT_PUBLIC_CURRENCY ?? "BDT",
   currencySymbol: process.env.NEXT_PUBLIC_CURRENCY_SYMBOL ?? "৳",
   links: {

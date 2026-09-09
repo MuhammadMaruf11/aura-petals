@@ -105,7 +105,7 @@ export async function Navbar() {
   };
 
   return (
-    <header className="sticky top-0 z-40 border-b border-border/70 bg-white backdrop-blur print:hidden">
+    <header className="sticky top-0 z-40 border-b border-border/70 bg-sand backdrop-blur print:hidden">
       <div className="container-boutique flex h-16 items-center justify-between gap-2 sm:h-20 sm:gap-4">
         {/* Left: Mobile Drawer Trigger (Hidden on Desktop) */}
         <div className="flex items-center lg:hidden">

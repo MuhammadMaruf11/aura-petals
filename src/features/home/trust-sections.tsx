@@ -74,7 +74,7 @@ const testimonials = [
 
 export function Testimonials() {
   return (
-    <section className="bg-sand py-16">
+    <section className="border-t border-border/70 py-16">
       <div className="container-boutique">
         <h2 className="mb-10 text-center font-heading text-3xl">
           Loved by our customers
@@ -83,7 +83,7 @@ export function Testimonials() {
           {testimonials.map((t) => (
             <figure
               key={t.name}
-              className="rounded-2xl border border-border/70 bg-card p-6"
+              className="rounded-2xl bg-sand border border-border/70 p-6"
             >
               <blockquote className="text-sm leading-relaxed text-foreground/90">
                 &ldquo;{t.quote}&rdquo;

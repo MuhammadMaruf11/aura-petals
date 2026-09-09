@@ -13,7 +13,7 @@ export async function Footer() {
   const logoUrl = storeSettings?.logoUrl;
 
   return (
-    <footer className="border-t border-border/70 bg-যবহটড print:hidden">
+    <footer className="border-t border-border/70 bg-sand print:hidden">
       <div className="container-boutique grid gap-10 py-16 md:grid-cols-4">
         <div className="space-y-3 md:col-span-1">
           <Link
