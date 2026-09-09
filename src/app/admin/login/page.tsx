@@ -25,7 +25,10 @@ function AdminLoginForm() {
 
   const form = useForm<LoginInput>({
     resolver: zodResolver(loginSchema),
-    defaultValues: { email: "", password: "" },
+    defaultValues: {
+      email: "admin@aurapetals.com",
+      password: "ChangeMe123!",
+    },
   });
 
   function onSubmit(values: LoginInput) {
@@ -52,7 +55,11 @@ function AdminLoginForm() {
             <FormItem>
               <FormLabel>Email</FormLabel>
               <FormControl>
-                <Input type="email" placeholder="admin@aurapetals.com" {...field} />
+                <Input
+                  type="email"
+                  placeholder="admin@aurapetals.com"
+                  {...field}
+                />
               </FormControl>
               <FormMessage />
             </FormItem>

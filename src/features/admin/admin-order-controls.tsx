@@ -19,16 +19,30 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import type { Order, OrderStatus, PaymentStatus } from "@prisma/client";
+import { RefreshCw, CreditCard, Truck, FileText } from "lucide-react";
 
 const ORDER_STATUSES: OrderStatus[] = [
-  "PENDING", "CONFIRMED", "PROCESSING", "SHIPPED",
-  "OUT_FOR_DELIVERY", "DELIVERED", "CANCELLED", "FAILED_DELIVERY",
-  "RETURN_REQUESTED", "RETURNED", "REFUND_REQUESTED", "REFUNDED",
+  "PENDING",
+  "CONFIRMED",
+  "PROCESSING",
+  "SHIPPED",
+  "OUT_FOR_DELIVERY",
+  "DELIVERED",
+  "CANCELLED",
+  "FAILED_DELIVERY",
+  "RETURN_REQUESTED",
+  "RETURNED",
+  "REFUND_REQUESTED",
+  "REFUNDED",
 ];
 const PAYMENT_STATUSES: PaymentStatus[] = [
-  "UNPAID", "PENDING", "PAID", "FAILED", "REFUNDED", "PARTIALLY_REFUNDED",
+  "UNPAID",
+  "PENDING",
+  "PAID",
+  "FAILED",
+  "REFUNDED",
+  "PARTIALLY_REFUNDED",
 ];
 
 export function AdminOrderControls({ order }: { order: Order }) {
@@ -36,9 +50,13 @@ export function AdminOrderControls({ order }: { order: Order }) {
   const [isPending, startTransition] = useTransition();
   const [status, setStatus] = useState<OrderStatus>(order.status);
   const [statusNote, setStatusNote] = useState("");
-  const [paymentStatus, setPaymentStatus] = useState<PaymentStatus>(order.paymentStatus);
+  const [paymentStatus, setPaymentStatus] = useState<PaymentStatus>(
+    order.paymentStatus,
+  );
   const [courierName, setCourierName] = useState(order.courierName ?? "");
-  const [trackingNumber, setTrackingNumber] = useState(order.trackingNumber ?? "");
+  const [trackingNumber, setTrackingNumber] = useState(
+    order.trackingNumber ?? "",
+  );
   const [trackingUrl, setTrackingUrl] = useState(order.trackingUrl ?? "");
   const [adminNote, setAdminNote] = useState(order.adminNote ?? "");
 
@@ -61,7 +79,11 @@ export function AdminOrderControls({ order }: { order: Order }) {
 
   function handleTrackingUpdate() {
     startTransition(async () => {
-      await updateOrderTrackingAction(order.id, { courierName, trackingNumber, trackingUrl });
+      await updateOrderTrackingAction(order.id, {
+        courierName,
+        trackingNumber,
+        trackingUrl,
+      });
       toast.success("Tracking info updated");
       router.refresh();
     });
@@ -76,67 +98,134 @@ export function AdminOrderControls({ order }: { order: Order }) {
   }
 
   return (
-    <div className="space-y-4">
-      <Card>
-        <CardHeader><CardTitle>Order status</CardTitle></CardHeader>
-        <CardContent className="space-y-3">
-          <Select value={status} onValueChange={(v) => setStatus(v as OrderStatus)}>
-            <SelectTrigger className="w-full"><SelectValue /></SelectTrigger>
-            <SelectContent>
+    <div className="space-y-6 sticky top-6">
+      {/* Order Status Control */}
+      <div className="bg-white border border-border/60 rounded-3xl p-6 shadow-xs space-y-4">
+        <h3 className="font-heading text-base font-bold text-foreground flex items-center gap-2">
+          <RefreshCw className="size-4 text-primary" /> Order Status
+        </h3>
+        <div className="space-y-3">
+          <Select
+            value={status}
+            onValueChange={(v) => setStatus(v as OrderStatus)}
+          >
+            <SelectTrigger className="w-full h-11 rounded-2xl bg-white border-border/60">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent className="rounded-2xl">
               {ORDER_STATUSES.map((s) => (
-                <SelectItem key={s} value={s}>{s.replaceAll("_", " ")}</SelectItem>
+                <SelectItem key={s} value={s}>
+                  {s.replaceAll("_", " ")}
+                </SelectItem>
               ))}
             </SelectContent>
           </Select>
           <Input
-            placeholder="Note for this status change (optional)"
+            placeholder="Status note (optional)"
             value={statusNote}
             onChange={(e) => setStatusNote(e.target.value)}
+            className="h-11 rounded-2xl bg-white border-border/60 text-sm"
           />
-          <Button onClick={handleStatusUpdate} disabled={isPending} className="w-full">
+          <Button
+            onClick={handleStatusUpdate}
+            disabled={isPending}
+            className="w-full rounded-full h-11 font-medium shadow-xs"
+          >
             Update status
           </Button>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
 
-      <Card>
-        <CardHeader><CardTitle>Payment</CardTitle></CardHeader>
-        <CardContent className="space-y-3">
-          <Select value={paymentStatus} onValueChange={(v) => setPaymentStatus(v as PaymentStatus)}>
-            <SelectTrigger className="w-full"><SelectValue /></SelectTrigger>
-            <SelectContent>
+      {/* Payment Control */}
+      <div className="bg-white border border-border/60 rounded-3xl p-6 shadow-xs space-y-4">
+        <h3 className="font-heading text-base font-bold text-foreground flex items-center gap-2">
+          <CreditCard className="size-4 text-primary" /> Payment Status
+        </h3>
+        <div className="space-y-3">
+          <Select
+            value={paymentStatus}
+            onValueChange={(v) => setPaymentStatus(v as PaymentStatus)}
+          >
+            <SelectTrigger className="w-full h-11 rounded-2xl bg-white border-border/60">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent className="rounded-2xl">
               {PAYMENT_STATUSES.map((s) => (
-                <SelectItem key={s} value={s}>{s.replaceAll("_", " ")}</SelectItem>
+                <SelectItem key={s} value={s}>
+                  {s.replaceAll("_", " ")}
+                </SelectItem>
               ))}
             </SelectContent>
           </Select>
-          <Button onClick={handlePaymentUpdate} disabled={isPending} variant="outline" className="w-full">
+          <Button
+            onClick={handlePaymentUpdate}
+            disabled={isPending}
+            variant="outline"
+            className="w-full rounded-full h-11 border-border/60 font-medium"
+          >
             Update payment status
           </Button>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
 
-      <Card>
-        <CardHeader><CardTitle>Tracking</CardTitle></CardHeader>
-        <CardContent className="space-y-3">
-          <Input placeholder="Courier name" value={courierName} onChange={(e) => setCourierName(e.target.value)} />
-          <Input placeholder="Tracking number" value={trackingNumber} onChange={(e) => setTrackingNumber(e.target.value)} />
-          <Input placeholder="Tracking URL" value={trackingUrl} onChange={(e) => setTrackingUrl(e.target.value)} />
-          <Button onClick={handleTrackingUpdate} disabled={isPending} variant="outline" className="w-full">
+      {/* Tracking Control */}
+      <div className="bg-white border border-border/60 rounded-3xl p-6 shadow-xs space-y-4">
+        <h3 className="font-heading text-base font-bold text-foreground flex items-center gap-2">
+          <Truck className="size-4 text-primary" /> Tracking Info
+        </h3>
+        <div className="space-y-3">
+          <Input
+            placeholder="Courier name"
+            value={courierName}
+            onChange={(e) => setCourierName(e.target.value)}
+            className="h-11 rounded-2xl bg-white border-border/60 text-sm"
+          />
+          <Input
+            placeholder="Tracking number"
+            value={trackingNumber}
+            onChange={(e) => setTrackingNumber(e.target.value)}
+            className="h-11 rounded-2xl bg-white border-border/60 text-sm"
+          />
+          <Input
+            placeholder="Tracking URL"
+            value={trackingUrl}
+            onChange={(e) => setTrackingUrl(e.target.value)}
+            className="h-11 rounded-2xl bg-white border-border/60 text-sm"
+          />
+          <Button
+            onClick={handleTrackingUpdate}
+            disabled={isPending}
+            variant="outline"
+            className="w-full rounded-full h-11 border-border/60 font-medium"
+          >
             Save tracking info
           </Button>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
 
-      <Card>
-        <CardHeader><CardTitle>Internal note</CardTitle></CardHeader>
-        <CardContent className="space-y-3">
-          <Textarea value={adminNote} onChange={(e) => setAdminNote(e.target.value)} rows={3} />
-          <Button onClick={handleNoteUpdate} disabled={isPending} variant="outline" className="w-full">
+      {/* Internal Note Control */}
+      <div className="bg-white border border-border/60 rounded-3xl p-6 shadow-xs space-y-4">
+        <h3 className="font-heading text-base font-bold text-foreground flex items-center gap-2">
+          <FileText className="size-4 text-primary" /> Internal Note
+        </h3>
+        <div className="space-y-3">
+          <Textarea
+            value={adminNote}
+            onChange={(e) => setAdminNote(e.target.value)}
+            rows={3}
+            placeholder="Add internal notes about this order..."
+            className="rounded-2xl bg-white border-border/60 text-sm p-3 resize-none"
+          />
+          <Button
+            onClick={handleNoteUpdate}
+            disabled={isPending}
+            variant="outline"
+            className="w-full rounded-full h-11 border-border/60 font-medium"
+          >
             Save note
           </Button>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
     </div>
   );
 }

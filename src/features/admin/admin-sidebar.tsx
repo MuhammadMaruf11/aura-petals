@@ -25,6 +25,8 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@/components/ui/sheet";
+import Image from "next/image";
+import { siteConfig } from "@/config/site";
 
 const links = [
   { href: "/admin", label: "Dashboard", icon: LayoutDashboard },
@@ -89,11 +91,37 @@ function AdminSignOutButton() {
   );
 }
 
+interface AdminSidebarProps {
+  storeName?: string;
+  logoUrl?: string | null;
+}
+
 /** Persistent sidebar shown at lg (1024px) and above. */
-export function AdminSidebar() {
+export function AdminSidebar({
+  storeName = siteConfig.name,
+  logoUrl,
+}: AdminSidebarProps) {
+  const finalStoreName = storeName || siteConfig.name;
+
   return (
     <aside className="sticky top-0 hidden h-screen w-60 shrink-0 flex-col border-r border-border/70 bg-card p-4 lg:flex print:hidden">
-      <p className="mb-6 px-2 font-heading text-xl">Aura &amp; Petals</p>
+      <Link
+        href="/"
+        className="flex items-center text-center mb-2 pb-1 border-b border-border/70 font-heading text-xl tracking-tight sm:text-2xl"
+      >
+        {logoUrl ? (
+          <Image
+            src={logoUrl}
+            alt={finalStoreName}
+            width={96}
+            height={63}
+            className="mx-auto w-auto object-contain"
+            priority
+          />
+        ) : (
+          <span className="truncate">{finalStoreName}</span>
+        )}
+      </Link>
       <AdminNavLinks />
       <AdminSignOutButton />
     </aside>
@@ -101,12 +129,31 @@ export function AdminSidebar() {
 }
 
 /** Sticky top bar + slide-out drawer shown below lg (1024px). */
-export function AdminMobileHeader() {
+export function AdminMobileHeader({
+  storeName = siteConfig.name,
+  logoUrl,
+}: AdminSidebarProps) {
   const [open, setOpen] = useState(false);
 
   return (
     <header className="sticky top-0 z-30 flex h-16 items-center justify-between border-b border-border/70 bg-card px-4 lg:hidden print:hidden">
-      <p className="font-heading text-lg">Aura &amp; Petals</p>
+      <Link
+        href="/"
+        className="flex items-center font-heading text-xl tracking-tight sm:text-2xl"
+      >
+        {logoUrl ? (
+          <Image
+            src={logoUrl}
+            alt={storeName || siteConfig.name}
+            width={80}
+            height={53}
+            className="mx-auto"
+            priority
+          />
+        ) : (
+          <span className="truncate">{storeName || siteConfig.name}</span>
+        )}
+      </Link>
       <Sheet open={open} onOpenChange={setOpen}>
         <Button
           type="button"

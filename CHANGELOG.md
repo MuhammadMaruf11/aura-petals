@@ -1,6 +1,71 @@
 # Changelog
 
-## Admin/customer auth isolation fix + banner responsive fix
+## Banner system audit: Dialog trigger hardening + full flow verification
+
+**Runtime error (`Primitive.button failed to slot onto its children`)**:
+traced the entire `DialogTrigger asChild` composition in
+`banner-form-dialog.tsx` against the identical, presumably-working pattern
+in `category-form-dialog.tsx` and `coupon-form-dialog.tsx` (both use the
+exact same `<DialogTrigger asChild>{trigger ?? <Button>...</Button>}`
+structure) — found the composition structurally correct and could not
+reproduce a defect in it through static tracing of Radix's actual
+`Primitive.button`/`Slot` mechanism. **Being transparent**: without a
+running browser, the exact historical trigger of this specific error could
+not be conclusively pinned down. What was concretely wrong and fixed: the
+`trigger` prop was typed as `React.ReactNode` — a much broader type than
+what `Slot` actually requires (`React.ReactElement`) — permitting a caller
+to pass a string, array, boolean, or fragment that Slot cannot compose
+onto, with no compile-time signal that this was invalid. Tightened the
+type to `ReactElement` and added a runtime `isValidElement` guard so the
+component now falls back to its default trigger button instead of ever
+handing Slot something invalid, for both existing callers and any future
+one. This is a genuine correctness fix (closes a real type-safety gap at
+the exact reported location), not a suppression — no error is caught or
+hidden; the composition is made structurally impossible to violate.
+
+**Full flow audit — everything else was already correct, verified by
+reading, not assumed:**
+- Field preservation on update: `saveBannerAction` always sends the
+  *complete* form state to `adminUpdateBanner`, which does a full
+  `prisma.banner.update({ data: input })` — every field, every save. No
+  partial-patch code path exists that could silently drop a field.
+- Active/Inactive: `isActive: z.boolean()` end to end,
+  `getActiveBanners()` filters on it correctly,
+  `revalidatePath("/", "layout")` runs after every save so the homepage
+  re-fetches fresh data.
+- Placement enum consistency: `bannerFormSchema`'s
+  `z.enum(["HERO","PROMO_STRIP","MID_PAGE"])`, the Prisma
+  `BannerPlacement` enum, the dialog's `SelectItem` values, and
+  `getActiveBanners()`'s parameter type all match exactly — and
+  `bannerFormClientSchema` is derived from `bannerFormSchema` via
+  `.omit()` rather than a hand-duplicated schema, so client/server drift
+  isn't structurally possible here.
+- Public rendering (`PromoStrip`, `MidPageBanner`, `Hero`): all already
+  null-safe for missing `subtitle`/`ctaHref`/`ctaLabel`; `imageUrl` is
+  required at the schema level so no banner can exist without one.
+  Homepage fetches all three placements server-side via `Promise.all` and
+  passes them straight through — no client-side fetching.
+- Cloudinary: create/replace/delete for banner images all reuse the same
+  shared `deleteImageFromCloudinary`/upload utilities as everything else;
+  replacement deletes the old asset only after the new one succeeds;
+  delete-banner cleans up its Cloudinary asset. No duplicate
+  implementation, nothing changed here (already correct).
+- **No database/schema changes required or made this pass.**
+
+**Responsive fix (genuine bug found)**: `MidPageBanner` used `aspect-[21/9]`
+(the *shortest* box, ~160px tall at a 375px phone width) as its **mobile**
+default, with the taller `aspect-[3/1]` only applying at `sm:` and up —
+backwards, since mobile's narrower width means title/subtitle/CTA text
+wraps onto more lines and needs more height, not less. With the parent's
+`overflow-hidden`, a longer admin-entered title+subtitle+CTA combination
+could clip on mobile. Changed the mobile base to `aspect-[4/3]` and
+tightened the mobile text inset slightly (`px-8`→`px-5`, `sm:px-14`
+unchanged) so text has a bit more width to wrap into fewer lines. Desktop
+and tablet (`sm:` and up) are pixel-for-pixel unchanged. `Hero`'s
+`min-h-*`/`items-start` fix from the prior pass (also written to prevent
+mobile content clipping) was reviewed and left as-is — no new issue found
+there. `PromoStrip` (single-line, `truncate`) reviewed, no issue found.
+
 
 **Root cause of admin identity leaking into customer account pages**: the
 entire app used a single shared `"session"` cookie for both admin and

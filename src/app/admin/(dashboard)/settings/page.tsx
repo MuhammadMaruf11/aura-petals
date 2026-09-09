@@ -9,8 +9,8 @@ export default async function AdminSettingsPage() {
   const settings = await getStoreSettings();
 
   return (
-    <div className="space-y-6">
-      <h1 className="font-heading text-2xl">Store settings</h1>
+    <div className="space-y-6 container-boutique">
+      <h2 className="font-heading text-2xl font-semibold">Store information</h2>
       <StoreSettingsForm settings={serializeDecimals(settings)} />
     </div>
   );

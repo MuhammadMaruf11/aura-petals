@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useState, useTransition, isValidElement, type ReactElement } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "next/navigation";
@@ -36,7 +36,19 @@ import type { Banner } from "@prisma/client";
 import { Plus } from "lucide-react";
 import { SingleImageUploader, type ImageValue } from "@/features/admin/single-image-uploader";
 
-export function BannerFormDialog({ banner, trigger }: { banner?: Banner; trigger?: React.ReactNode }) {
+export function BannerFormDialog({
+  banner,
+  trigger,
+}: {
+  banner?: Banner;
+  // Slot (used internally by DialogTrigger's asChild) requires exactly one
+  // React *element* — the broader ReactNode type (previously used here)
+  // also permits strings, numbers, booleans, fragments, and arrays, none
+  // of which Slot can compose onto. Typing this as ReactElement makes the
+  // actual constraint explicit at the call site instead of only at
+  // runtime inside Radix's internals.
+  trigger?: ReactElement;
+}) {
   const [open, setOpen] = useState(false);
   const [isPending, startTransition] = useTransition();
   const [image, setImage] = useState<ImageValue | null>(
@@ -82,9 +94,22 @@ export function BannerFormDialog({ banner, trigger }: { banner?: Banner; trigger
     });
   });
 
+  const defaultTrigger = (
+    <Button>
+      <Plus /> New banner
+    </Button>
+  );
+  // Guard against Slot ever receiving something other than a single valid
+  // element (e.g. if a future caller passes undefined explicitly, a
+  // conditional `condition && <X/>` that evaluates to `false`, or an
+  // array) — fall back to the default trigger instead of letting Radix's
+  // Slot throw for it.
+  const resolvedTrigger =
+    trigger !== undefined && isValidElement(trigger) ? trigger : defaultTrigger;
+
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>{trigger ?? <Button><Plus /> New banner</Button>}</DialogTrigger>
+      <DialogTrigger asChild>{resolvedTrigger}</DialogTrigger>
       <DialogContent className="max-h-[90vh] overflow-y-auto">
         <DialogHeader><DialogTitle>{banner ? "Edit banner" : "New banner"}</DialogTitle></DialogHeader>
         <Form {...form}>

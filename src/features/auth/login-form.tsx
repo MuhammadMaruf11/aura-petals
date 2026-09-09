@@ -27,7 +27,10 @@ export function LoginForm() {
 
   const form = useForm<LoginInput>({
     resolver: zodResolver(loginSchema),
-    defaultValues: { email: "", password: "" },
+    defaultValues: {
+      email: "jamie@example.com",
+      password: "Password123!",
+    },
   });
 
   function onSubmit(values: LoginInput) {
@@ -35,7 +38,9 @@ export function LoginForm() {
     startTransition(async () => {
       const result = await loginUser(values);
       if (!result.success) {
-        setFormError(result.message ?? "Something went wrong. Please try again.");
+        setFormError(
+          result.message ?? "Something went wrong. Please try again.",
+        );
         return;
       }
       toast.success("Welcome back!");

@@ -24,7 +24,7 @@ export default async function AdminCategoriesPage() {
       </div>
 
       <div className="overflow-x-auto rounded-xl border border-border/70 bg-card">
-        <table className="w-full min-w-[680px] text-sm">
+        <table className="w-full min-w-170 text-sm">
           <thead className="border-b border-border/70 text-left text-muted-foreground">
             <tr>
               <th className="p-3">Name</th>

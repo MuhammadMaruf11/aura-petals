@@ -37,7 +37,7 @@ export default async function AdminProductsPage({
       </form>
 
       <div className="overflow-x-auto rounded-xl border border-border/70 bg-card">
-        <table className="w-full min-w-[720px] text-sm">
+        <table className="w-full min-w-180 text-sm">
           <thead className="border-b border-border/70 text-left text-muted-foreground">
             <tr>
               <th className="p-3">Product</th>

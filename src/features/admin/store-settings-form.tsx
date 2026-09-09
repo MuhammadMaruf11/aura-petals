@@ -79,11 +79,8 @@ export function StoreSettingsForm({ settings }: { settings: StoreSettings }) {
 
   return (
     <Form {...form}>
-      <form onSubmit={onSubmit} className="max-w-2xl space-y-8">
+      <form onSubmit={onSubmit} className="container-boutique bg-white py-8 space-y-8">
         <section className="space-y-4">
-          <h2 className="font-heading text-lg font-semibold">
-            Store information
-          </h2>
 
           {/* Connected SingleImageUploader directly into react-hook-form */}
           <FormField
@@ -97,7 +94,6 @@ export function StoreSettingsForm({ settings }: { settings: StoreSettings }) {
 
               return (
                 <FormItem>
-                  <FormLabel>Store logo</FormLabel>
                   <FormControl>
                     <SingleImageUploader
                       value={imageValue}

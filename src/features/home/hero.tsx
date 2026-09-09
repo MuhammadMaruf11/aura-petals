@@ -58,14 +58,17 @@ export function Hero({ banners }: { banners?: Banner[] }) {
   }, [emblaApi, slides.length]);
 
   return (
-    <section className="relative w-full overflow-hidden bg-white my-8">
+    <section className="container-boutique py-4 relative my-4">
       {/* Embla Viewport */}
-      <div className="overflow-hidden container mx-auto" ref={emblaRef}>
+      <div
+        className="overflow-hidden rounded-4xl bg-sand relative"
+        ref={emblaRef}
+      >
         <div className="flex touch-pan-y items-start">
           {slides.map((slide, index) => (
             <div
               key={slide.id || index}
-              className="relative flex-[0_0_100%] min-w-0 min-h-130 sm:min-h-155 lg:min-h-175 select-none"
+              className="relative flex-[0_0_100%] min-w-0 select-none min-h-130 sm:min-h-155 lg:min-h-175 flex items-center"
             >
               {/* Background Hero Image */}
               <Image
@@ -73,7 +76,6 @@ export function Hero({ banners }: { banners?: Banner[] }) {
                 alt={slide.title}
                 fill
                 priority={index === 0}
-                sizes="100vw"
                 className="object-cover object-center transition-transform duration-1000 scale-105 group-hover:scale-100"
               />
 
@@ -81,7 +83,7 @@ export function Hero({ banners }: { banners?: Banner[] }) {
               <div className="absolute inset-0 bg-black/50 md:to-transparent" />
 
               {/* Content Card Overlay */}
-              <div className="container-boutique relative z-10 flex h-full items-center">
+              <div className="container-boutique relative z-10 w-full py-12">
                 <div className="max-w-2xl space-y-6">
                   <div className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-4 py-1.5 text-xs font-medium uppercase tracking-widest text-white backdrop-blur-md">
                     <Sparkles className="size-3.5 text-amber-300" />
@@ -126,23 +128,20 @@ export function Hero({ banners }: { banners?: Banner[] }) {
 
       {/* Slide Navigation & Controls */}
       {slides.length > 1 && (
-        <>
-          {/* Pagination Indicators (Dots) */}
-          <div className="absolute bottom-6 left-1/2 z-20 flex -translate-x-1/2 items-center gap-2.5 rounded-full border border-white/10 bg-black/40 px-4 py-2 backdrop-blur-md">
-            {scrollSnaps.map((_, index) => (
-              <button
-                key={index}
-                onClick={() => scrollTo(index)}
-                aria-label={`Go to slide ${index + 1}`}
-                className={`h-2 rounded-full transition-all duration-500 ${
-                  index === selectedIndex
-                    ? "w-8 bg-white"
-                    : "w-2 bg-white/40 hover:bg-white/70"
-                }`}
-              />
-            ))}
-          </div>
-        </>
+        <div className="absolute bottom-10 left-1/2 z-20 flex -translate-x-1/2 items-center gap-2.5 rounded-full border border-white/10 bg-black/40 px-4 py-2 backdrop-blur-md">
+          {scrollSnaps.map((_, index) => (
+            <button
+              key={index}
+              onClick={() => scrollTo(index)}
+              aria-label={`Go to slide ${index + 1}`}
+              className={`h-2 rounded-full transition-all duration-500 ${
+                index === selectedIndex
+                  ? "w-8 bg-white"
+                  : "w-2 bg-white/40 hover:bg-white/70"
+              }`}
+            />
+          ))}
+        </div>
       )}
     </section>
   );
