@@ -35,6 +35,7 @@ import {
   FormMessage,
   FormDescription,
 } from "@/components/ui/form";
+import { SingleImageUploader, type ImageValue } from "@/features/admin/single-image-uploader";
 import type { Category } from "@prisma/client";
 import { Plus } from "lucide-react";
 
@@ -48,6 +49,9 @@ export function CategoryFormDialog({
   const [open, setOpen] = useState(false);
   const [isPending, startTransition] = useTransition();
   const [parentOptions, setParentOptions] = useState<{ id: string; name: string; depth: number }[]>([]);
+  const [image, setImage] = useState<ImageValue | null>(
+    category?.image ? { url: category.image, publicId: category.imageCloudinaryPublicId } : null,
+  );
   const router = useRouter();
 
   useEffect(() => {
@@ -70,7 +74,6 @@ export function CategoryFormDialog({
       name: category?.name ?? "",
       slug: category?.slug ?? "",
       description: category?.description ?? "",
-      image: category?.image ?? "",
       parentId: category?.parentId ?? "",
       isFeatured: category?.isFeatured ?? false,
       isActive: category?.isActive ?? true,
@@ -80,7 +83,11 @@ export function CategoryFormDialog({
 
   const onSubmit = form.handleSubmit((values) => {
     startTransition(async () => {
-      const result = await saveCategoryAction(category?.id ?? null, values);
+      const result = await saveCategoryAction(category?.id ?? null, {
+        ...values,
+        image: image?.url ?? "",
+        imageCloudinaryPublicId: image?.publicId ?? null,
+      });
       if (!result.success) {
         toast.error(result.message);
         return;
@@ -170,17 +177,15 @@ export function CategoryFormDialog({
                 </FormItem>
               )}
             />
-            <FormField
-              control={form.control}
-              name="image"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Image URL</FormLabel>
-                  <FormControl><Input {...field} /></FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+            <div className="space-y-2">
+              <FormLabel>Image</FormLabel>
+              <SingleImageUploader
+                value={image}
+                onChange={setImage}
+                folder="categories"
+                label="Category image"
+              />
+            </div>
             <FormField
               control={form.control}
               name="sortOrder"

@@ -46,6 +46,9 @@ export async function saveStoreSettingsAction(
     // empty string বা undefined হ্যান্ডেল করার জন্য সঠিক ভ্যালু এসাইন
     logoUrl: parsed.data.logoUrl || "",
     logoCloudinaryPublicId: parsed.data.logoCloudinaryPublicId || null,
+    faviconUrl: parsed.data.faviconUrl || "",
+    faviconCloudinaryPublicId: parsed.data.faviconCloudinaryPublicId || null,
+    themeColor: parsed.data.themeColor,
     currencyCode: parsed.data.currencyCode,
     currencySymbol: parsed.data.currencySymbol,
     instagramUrl: parsed.data.instagramUrl || undefined,
@@ -68,6 +71,13 @@ export async function saveStoreSettingsAction(
     previous.logoCloudinaryPublicId !== parsed.data.logoCloudinaryPublicId
   ) {
     await deleteImageFromCloudinary(previous.logoCloudinaryPublicId);
+  }
+  // Favicon was replaced — same cleanup
+  if (
+    previous?.faviconCloudinaryPublicId &&
+    previous.faviconCloudinaryPublicId !== parsed.data.faviconCloudinaryPublicId
+  ) {
+    await deleteImageFromCloudinary(previous.faviconCloudinaryPublicId);
   }
 
   revalidatePath("/admin/settings");

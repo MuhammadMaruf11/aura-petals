@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import type { CSSProperties } from "react";
 import { Cormorant_Garamond, Manrope } from "next/font/google";
 import { Toaster } from "sonner";
 import { Providers } from "@/app/providers";
@@ -23,26 +24,31 @@ const manrope = Manrope({
   display: "swap",
 });
 
-export const metadata: Metadata = {
-  metadataBase: new URL(siteConfig.url),
-  title: {
-    default: siteConfig.name,
-    template: `%s | ${siteConfig.name}`,
-  },
-  description: siteConfig.description,
-  openGraph: {
-    type: "website",
-    title: siteConfig.name,
+export async function generateMetadata(): Promise<Metadata> {
+  const settings = await getStoreSettings();
+  return {
+    metadataBase: new URL(siteConfig.url),
+    title: {
+      default: siteConfig.name,
+      template: `%s | ${siteConfig.name}`,
+    },
     description: siteConfig.description,
-    url: siteConfig.url,
-    siteName: siteConfig.name,
-  },
-  twitter: {
-    card: "summary_large_image",
-    title: siteConfig.name,
-    description: siteConfig.description,
-  },
-};
+    icons: settings.faviconUrl ? { icon: settings.faviconUrl } : undefined,
+    themeColor: settings.themeColor || undefined,
+    openGraph: {
+      type: "website",
+      title: siteConfig.name,
+      description: siteConfig.description,
+      url: siteConfig.url,
+      siteName: siteConfig.name,
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: siteConfig.name,
+      description: siteConfig.description,
+    },
+  };
+}
 
 export default async function RootLayout({
   children,
@@ -57,6 +63,7 @@ export default async function RootLayout({
     <html
       lang="en"
       className={`${cormorant.variable} ${manrope.variable} h-full antialiased`}
+      style={settings.themeColor ? ({ "--primary": settings.themeColor } as CSSProperties) : undefined}
       suppressHydrationWarning
     >
       <body className="min-h-full flex flex-col bg-background text-foreground">

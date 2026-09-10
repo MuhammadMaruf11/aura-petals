@@ -27,18 +27,22 @@ export function ProductGalleryManager({
   const [isPending, startTransition] = useTransition();
   const [localImages, setLocalImages] = useState<GalleryImage[]>(images.map(toGalleryImage));
 
-  function handleUpload(uploaded: { url: string; publicId: string }) {
+  function handleUpload(uploaded: { url: string; publicId: string }[]) {
     startTransition(async () => {
-      const isFirstImage = localImages.length === 0;
-      const result = await addProductImageAction(productId, uploaded.url, isFirstImage, uploaded.publicId);
-      if (!result.success || !result.imageId) {
-        toast.error(!result.success ? result.message : "Could not save the uploaded image.");
-        return;
+      const gallerySize = localImages.length;
+      const newImages: GalleryImage[] = [];
+      for (const item of uploaded) {
+        const isFirstImage = gallerySize === 0 && newImages.length === 0;
+        const result = await addProductImageAction(productId, item.url, isFirstImage, item.publicId);
+        if (!result.success || !result.imageId) {
+          toast.error(!result.success ? result.message : "Could not save an uploaded image.");
+          continue;
+        }
+        newImages.push({ id: result.imageId, url: item.url, publicId: item.publicId, isMain: isFirstImage });
       }
-      setLocalImages((current) => [
-        ...current,
-        { id: result.imageId!, url: uploaded.url, publicId: uploaded.publicId, isMain: isFirstImage },
-      ]);
+      if (newImages.length > 0) {
+        setLocalImages((current) => [...current, ...newImages]);
+      }
       router.refresh();
     });
   }

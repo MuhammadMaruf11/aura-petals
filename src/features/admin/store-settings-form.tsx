@@ -42,6 +42,9 @@ export function StoreSettingsForm({ settings }: { settings: StoreSettings }) {
       storeAddress: settings.storeAddress ?? "",
       logoUrl: settings.logoUrl ?? "",
       logoCloudinaryPublicId: settings.logoCloudinaryPublicId ?? null,
+      faviconUrl: settings.faviconUrl ?? "",
+      faviconCloudinaryPublicId: settings.faviconCloudinaryPublicId ?? null,
+      themeColor: settings.themeColor ?? "#8b6f4e",
       currencyCode: settings.currencyCode ?? "BDT",
       currencySymbol: settings.currencySymbol ?? "৳",
       instagramUrl: settings.instagramUrl ?? "",
@@ -118,6 +121,67 @@ export function StoreSettingsForm({ settings }: { settings: StoreSettings }) {
               );
             }}
           />
+
+          <div className="grid gap-6 sm:grid-cols-2">
+            <FormField
+              control={form.control}
+              name="faviconUrl"
+              render={({ field }) => {
+                const currentPublicId = form.watch("faviconCloudinaryPublicId");
+                const imageValue: ImageValue | null = field.value
+                  ? { url: field.value, publicId: currentPublicId ?? null }
+                  : null;
+
+                return (
+                  <FormItem>
+                    <FormControl>
+                      <SingleImageUploader
+                        value={imageValue}
+                        onChange={(img) => {
+                          form.setValue("faviconUrl", img?.url ?? "", {
+                            shouldValidate: true,
+                            shouldDirty: true,
+                          });
+                          form.setValue(
+                            "faviconCloudinaryPublicId",
+                            img?.publicId ?? null,
+                            { shouldValidate: true, shouldDirty: true },
+                          );
+                        }}
+                        folder="branding"
+                        label="Favicon"
+                        aspectClassName="aspect-square max-w-[80px]"
+                      />
+                    </FormControl>
+                    <FormDescription>Square image, at least 64×64px.</FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                );
+              }}
+            />
+            <FormField
+              control={form.control}
+              name="themeColor"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Theme color</FormLabel>
+                  <FormControl>
+                    <div className="flex items-center gap-3">
+                      <input
+                        type="color"
+                        value={field.value}
+                        onChange={field.onChange}
+                        className="h-10 w-14 cursor-pointer rounded border border-input bg-transparent p-1"
+                      />
+                      <Input {...field} className="max-w-[140px]" />
+                    </div>
+                  </FormControl>
+                  <FormDescription>Used for the browser theme color and accents.</FormDescription>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </div>
 
           <div className="grid gap-4 sm:grid-cols-2">
             <FormField

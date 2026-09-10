@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useTransition } from "react";
+import { useRef, useState, useTransition } from "react";
 import Image from "next/image";
 import { ImagePlus, Loader2, MoveLeft, MoveRight, Star, X } from "lucide-react";
 import { toast } from "sonner";
@@ -32,17 +32,22 @@ export function GalleryImageUploader({
   onReorder,
 }: {
   images: GalleryImage[];
-  onUpload: (uploaded: { url: string; publicId: string }) => void;
+  onUpload: (uploaded: { url: string; publicId: string }[]) => void;
   onRemove: (id: string) => void;
   onSetMain: (id: string) => void;
   onReorder: (orderedIds: string[]) => void;
 }) {
   const inputRef = useRef<HTMLInputElement>(null);
   const [isPending, startTransition] = useTransition();
+  const [isDragOver, setIsDragOver] = useState(false);
 
   function handleFilesChange(e: React.ChangeEvent<HTMLInputElement>) {
-    const files = Array.from(e.target.files ?? []);
+    const files = Array.from(e.target.files ?? []) as File[];
     e.target.value = "";
+    uploadFiles(files);
+  }
+
+  function uploadFiles(files: File[]) {
     if (files.length === 0) return;
 
     const remainingSlots = MAX_IMAGES - images.length;
@@ -56,15 +61,28 @@ export function GalleryImageUploader({
     }
 
     startTransition(async () => {
-      for (const file of toUpload) {
-        const dataUrl = await readFileAsDataUrl(file);
-        const result = await uploadImageAction(dataUrl, "products");
+      // Uploaded in parallel (the actual "simultaneous" fix) rather than
+      // one-at-a-time. Results are collected into a single batch and
+      // reported to the parent in one onUpload call, rather than once per
+      // file — the parent decides "is this the first image" from its own
+      // current state, which would race (all calls seeing the same stale
+      // "gallery is empty" snapshot) if fired once per file back-to-back.
+      const results = await Promise.all(
+        toUpload.map(async (file) => {
+          const dataUrl = await readFileAsDataUrl(file);
+          return uploadImageAction(dataUrl, "products");
+        }),
+      );
+
+      const succeeded: { url: string; publicId: string }[] = [];
+      for (const result of results) {
         if (!result.success) {
           toast.error(result.message);
           continue;
         }
-        onUpload({ url: result.url, publicId: result.publicId });
+        succeeded.push({ url: result.url, publicId: result.publicId });
       }
+      if (succeeded.length > 0) onUpload(succeeded);
     });
   }
 
@@ -141,11 +159,26 @@ export function GalleryImageUploader({
           <button
             type="button"
             onClick={() => inputRef.current?.click()}
+            onDragOver={(e) => {
+              e.preventDefault();
+              setIsDragOver(true);
+            }}
+            onDragLeave={() => setIsDragOver(false)}
+            onDrop={(e) => {
+              e.preventDefault();
+              setIsDragOver(false);
+              uploadFiles(
+                (Array.from(e.dataTransfer.files) as File[]).filter((f) => f.type.startsWith("image/")),
+              );
+            }}
             disabled={isPending}
-            className="flex aspect-square flex-col items-center justify-center gap-1 rounded-lg border border-dashed border-border text-xs text-muted-foreground"
+            className={cn(
+              "flex aspect-square flex-col items-center justify-center gap-1 rounded-lg border border-dashed text-xs text-muted-foreground",
+              isDragOver ? "border-primary bg-primary/5" : "border-border",
+            )}
           >
             {isPending ? <Loader2 className="size-4 animate-spin" /> : <ImagePlus className="size-4" />}
-            {isPending ? "Uploading…" : "Add image"}
+            {isPending ? "Uploading…" : isDragOver ? "Drop to upload" : "Add image"}
           </button>
         )}
       </div>

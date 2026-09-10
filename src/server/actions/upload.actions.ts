@@ -20,7 +20,7 @@ const MAX_UPLOAD_BYTES = 8 * 1024 * 1024; // 8MB
  */
 export async function uploadImageAction(
   dataUrl: string,
-  folder: "products" | "banners" | "branding",
+  folder: "products" | "banners" | "branding" | "categories",
 ): Promise<UploadImageResult> {
   await requireAdmin();
 

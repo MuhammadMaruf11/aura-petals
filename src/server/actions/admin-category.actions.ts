@@ -8,7 +8,9 @@ import {
   adminUpdateCategory,
   adminDeleteCategory,
   adminListCategoriesForSelect,
+  adminGetCategoryById,
 } from "@/server/services/admin-category.service";
+import { deleteImageFromCloudinary } from "@/lib/cloudinary/cloudinary";
 import type { AdminActionResult } from "@/server/actions/admin-product.actions";
 
 export async function getCategoriesForSelectAction() {
@@ -30,16 +32,28 @@ export async function saveCategoryAction(
     slug: parsed.data.slug,
     description: parsed.data.description || undefined,
     image: parsed.data.image || undefined,
+    imageCloudinaryPublicId: parsed.data.imageCloudinaryPublicId || null,
     parentId: parsed.data.parentId || null,
     isFeatured: parsed.data.isFeatured,
     isActive: parsed.data.isActive,
     sortOrder: parsed.data.sortOrder,
   };
 
+  let previousPublicId: string | null = null;
+  if (categoryId) {
+    const existing = await adminGetCategoryById(categoryId);
+    previousPublicId = existing?.imageCloudinaryPublicId ?? null;
+  }
+
   try {
     const category = categoryId
       ? await adminUpdateCategory(categoryId, data)
       : await adminCreateCategory(data);
+
+    if (previousPublicId && previousPublicId !== data.imageCloudinaryPublicId) {
+      await deleteImageFromCloudinary(previousPublicId);
+    }
+
     revalidatePath("/admin/categories");
     revalidatePath("/shop");
     return { success: true, id: category.id };
@@ -51,7 +65,11 @@ export async function saveCategoryAction(
 export async function deleteCategoryAction(categoryId: string): Promise<AdminActionResult> {
   await requireAdmin();
   try {
+    const existing = await adminGetCategoryById(categoryId);
     await adminDeleteCategory(categoryId);
+    if (existing?.imageCloudinaryPublicId) {
+      await deleteImageFromCloudinary(existing.imageCloudinaryPublicId);
+    }
     revalidatePath("/admin/categories");
     return { success: true };
   } catch {

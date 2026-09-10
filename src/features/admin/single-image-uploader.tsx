@@ -1,11 +1,12 @@
 "use client";
 
-import { useRef, useTransition } from "react";
+import { useRef, useState, useTransition } from "react";
 import Image from "next/image";
 import { ImagePlus, Loader2, X } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { readFileAsDataUrl } from "@/lib/cloudinary/read-file";
+import { cn } from "@/lib/utils";
 import {
   uploadImageAction,
   deleteCloudinaryImageAction,
@@ -22,22 +23,19 @@ export function SingleImageUploader({
 }: {
   value: ImageValue | null;
   onChange: (value: ImageValue | null) => void;
-  folder: "products" | "banners" | "branding";
+  folder: "products" | "banners" | "branding" | "categories";
   label?: string;
   aspectClassName?: string;
 }) {
   const inputRef = useRef<HTMLInputElement>(null);
   const [isPending, startTransition] = useTransition();
+  const [isDragOver, setIsDragOver] = useState(false);
 
   function handlePick() {
     inputRef.current?.click();
   }
 
-  function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0];
-    e.target.value = "";
-    if (!file) return;
-
+  function uploadFile(file: File) {
     startTransition(async () => {
       const dataUrl = await readFileAsDataUrl(file);
       const result = await uploadImageAction(dataUrl, folder);
@@ -57,6 +55,19 @@ export function SingleImageUploader({
     });
   }
 
+  function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    e.target.value = "";
+    if (file) uploadFile(file);
+  }
+
+  function handleDrop(e: React.DragEvent<HTMLDivElement>) {
+    e.preventDefault();
+    setIsDragOver(false);
+    const file = (Array.from(e.dataTransfer.files) as File[]).find((f) => f.type.startsWith("image/"));
+    if (file) uploadFile(file);
+  }
+
   function handleRemove() {
     const previous = value;
     onChange(null);
@@ -71,7 +82,17 @@ export function SingleImageUploader({
     <div className="space-y-2">
       <p className="text-sm font-medium">{label}</p>
       <div
-        className={`relative w-full max-w-sm overflow-hidden rounded-xl border border-dashed border-border bg-secondary ${aspectClassName}`}
+        onDragOver={(e) => {
+          e.preventDefault();
+          setIsDragOver(true);
+        }}
+        onDragLeave={() => setIsDragOver(false)}
+        onDrop={handleDrop}
+        className={cn(
+          "relative w-full max-w-sm overflow-hidden rounded-xl border border-dashed bg-secondary",
+          aspectClassName,
+          isDragOver ? "border-primary bg-primary/5" : "border-border",
+        )}
       >
         {value ? (
           <>
@@ -85,6 +106,11 @@ export function SingleImageUploader({
             >
               <X className="size-4" />
             </button>
+            {isDragOver && (
+              <div className="absolute inset-0 flex items-center justify-center bg-primary/10 text-sm font-medium text-primary">
+                Drop to replace
+              </div>
+            )}
           </>
         ) : (
           <button
@@ -94,7 +120,7 @@ export function SingleImageUploader({
             className="flex size-full flex-col items-center justify-center gap-2 text-sm text-muted-foreground"
           >
             {isPending ? <Loader2 className="size-5 animate-spin" /> : <ImagePlus className="size-5" />}
-            {isPending ? "Uploading…" : "Click to upload"}
+            {isPending ? "Uploading…" : isDragOver ? "Drop to upload" : "Click or drag to upload"}
           </button>
         )}
       </div>

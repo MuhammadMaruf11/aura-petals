@@ -42,7 +42,7 @@ export type CloudinaryUploadResult = {
  */
 export async function uploadImageToCloudinary(
   dataUrl: string,
-  folder: "products" | "banners" | "branding",
+  folder: "products" | "banners" | "branding" | "categories",
 ): Promise<CloudinaryUploadResult> {
   ensureConfigured();
   const result = await cloudinary.uploader.upload(dataUrl, {

@@ -306,15 +306,68 @@ export async function adminGetOrderById(id: string) {
 
 // ---- Admin-facing order management ----
 
+// Statuses where the order's items are no longer considered "sold" and
+// their stock should sit back in inventory.
+const STOCK_RELEASING_STATUSES: OrderStatus[] = [
+  "CANCELLED",
+  "FAILED_DELIVERY",
+  "RETURNED",
+  "REFUNDED",
+];
+
+async function adjustStock(
+  tx: Prisma.TransactionClient,
+  items: { productId: string; variantId: string | null; quantity: number }[],
+  direction: "restore" | "consume",
+) {
+  for (const item of items) {
+    const stockUpdate =
+      direction === "restore"
+        ? { increment: item.quantity }
+        : { decrement: item.quantity };
+    if (item.variantId) {
+      await tx.productVariant.update({
+        where: { id: item.variantId },
+        data: { stock: stockUpdate },
+      });
+    } else {
+      await tx.product.update({
+        where: { id: item.productId },
+        data: { stock: stockUpdate },
+      });
+    }
+  }
+}
+
 export async function adminUpdateOrderStatus(
   orderId: string,
   status: OrderStatus,
   note?: string,
 ) {
-  return prisma.$transaction([
-    prisma.order.update({ where: { id: orderId }, data: { status } }),
-    prisma.orderTrackingEvent.create({ data: { orderId, status, note } }),
-  ]);
+  return prisma.$transaction(async (tx) => {
+    const existing = await tx.order.findUniqueOrThrow({
+      where: { id: orderId },
+      include: { items: { select: { productId: true, variantId: true, quantity: true } } },
+    });
+
+    // Idempotent by construction: only acts on the old->new transition, so
+    // re-saving the same status (or moving between two releasing statuses,
+    // e.g. CANCELLED -> REFUNDED) never restores/consumes stock twice.
+    const wasReleasing = STOCK_RELEASING_STATUSES.includes(existing.status);
+    const willBeReleasing = STOCK_RELEASING_STATUSES.includes(status);
+    if (!wasReleasing && willBeReleasing) {
+      await adjustStock(tx, existing.items, "restore");
+    } else if (wasReleasing && !willBeReleasing) {
+      // Admin reversed a cancellation/return back into an active state —
+      // put the stock back into "sold" so it isn't double-counted as
+      // available.
+      await adjustStock(tx, existing.items, "consume");
+    }
+
+    const updated = await tx.order.update({ where: { id: orderId }, data: { status } });
+    await tx.orderTrackingEvent.create({ data: { orderId, status, note } });
+    return updated;
+  });
 }
 
 export async function adminUpdateTrackingInfo(

@@ -32,6 +32,7 @@ export type CategoryInput = {
   slug: string;
   description?: string;
   image?: string;
+  imageCloudinaryPublicId?: string | null;
   parentId?: string | null;
   isFeatured: boolean;
   isActive: boolean;
@@ -57,6 +58,10 @@ export async function adminListCategoriesForSelect() {
   }
   walk(null, 0);
   return result;
+}
+
+export async function adminGetCategoryById(id: string) {
+  return prisma.category.findUnique({ where: { id } });
 }
 
 export async function adminCreateCategory(input: CategoryInput) {

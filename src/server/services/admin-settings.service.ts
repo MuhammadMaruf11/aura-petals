@@ -15,6 +15,9 @@ export type StoreSettingsInput = {
   storeAddress?: string;
   logoUrl?: string;
   logoCloudinaryPublicId?: string | null;
+  faviconUrl?: string;
+  faviconCloudinaryPublicId?: string | null;
+  themeColor: string;
   currencyCode: string;
   currencySymbol: string;
   instagramUrl?: string;
